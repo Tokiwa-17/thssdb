@@ -5,8 +5,14 @@ package cn.edu.thssdb.parser;
 
 import cn.edu.thssdb.exception.DatabaseNotExistException;
 import cn.edu.thssdb.query.QueryResult;
+import cn.edu.thssdb.schema.Column;
 import cn.edu.thssdb.schema.Database;
 import cn.edu.thssdb.schema.Manager;
+import cn.edu.thssdb.type.ColumnType;
+
+import java.util.ArrayList;
+import java.util.Locale;
+
 
 /**
  * When use SQL sentence, e.g., "SELECT avg(A) FROM TableX;"
@@ -108,12 +114,82 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         return "Drop table " + ctx.table_name().getText() + ".";
     }
 
+    public Object visitParse(SQLParser.ParseContext ctx) {
+        return visitSql_stmt_list(ctx.sql_stmt_list());
+    }
+
+    public Object visitSql_stmt_list(SQLParser.Sql_stmt_listContext ctx) {
+        ArrayList<QueryResult> ret = new ArrayList<>();
+        for (SQLParser.Sql_stmtContext subCtx : ctx.sql_stmt()) ret.add(visitSql_stmt(subCtx));
+        return ret;
+    }
+
     /**
      * TODO
      创建表格
+     CREATE TABLE tableName(attrName1 Type1, attrName2 Type2,…, attrNameN TypeN NOT NULL, PRIMARY KEY(attrName1))
      */
     @Override
-    public String visitCreate_table_stmt(SQLParser.Create_table_stmtContext ctx) {return null;}
+    public String visitCreate_table_stmt(SQLParser.Create_table_stmtContext ctx) {
+        try {
+            String tablename = ctx.table_name().children.get(0).toString(); // create table tablename 第2个是tablename
+            int n = ctx.getChildCount();
+            ArrayList<Column> columnItems = new ArrayList<>();
+            for(int i = 4; i < n; i += 2) { //对每个数据项的type进行分析
+                if(ctx.getChild(i).getClass().getName().equals("cn.edu.thssdb.parser.SQLParser$Column_defContext")) {
+                    String columnName = ((SQLParser.Column_defContext)ctx.getChild(i)).column_name().children.get(0).toString().toLowerCase(Locale.ROOT);
+                    String typeName = ((SQLParser.Column_defContext)ctx.getChild(i)).type_name().children.get(0).toString();
+                    ColumnType type = ColumnType.INT;
+                    if(typeName.toLowerCase().equals("int")) {
+                        type = ColumnType.INT;
+                    } else if (typeName.toLowerCase().equals("long")) {
+                        type = ColumnType.LONG;
+                    } else if (typeName.toLowerCase().equals("float")) {
+                        type = ColumnType.FLOAT;
+                    } else if (typeName.toLowerCase().equals("double")) {
+                        type = ColumnType.DOUBLE;
+                    } else if (typeName.toLowerCase().equals("string")) {
+                        type = ColumnType.STRING;
+                    }
+                    int length = 128;
+                    try {
+                        length = Integer. parseInt(((SQLParser.Column_defContext)ctx.getChild(i)).type_name().children.get(2).toString());
+                    } catch(Exception e) {
+
+                    }
+                    Boolean notNull = false;
+                    int constraint_num = ((SQLParser.Column_defContext)ctx.getChild(i)).column_constraint().size();
+                    for (int j = 0; j < constraint_num; j++) {
+                        if (((SQLParser.Column_defContext)ctx.getChild(i)).column_constraint(j).children.get(0).toString().toLowerCase().equals("not") &&
+                                ((SQLParser.Column_defContext)ctx.getChild(i)).column_constraint(j).children.get(1).toString().toLowerCase().equals("null")) {
+                            notNull = true;
+                        }
+                    }
+                    columnItems.add(new Column(columnName, type, 0, notNull, length));
+                    //columnItems.add((ColumnItem(columnName, typeName, false, false));
+                } else {
+                    if (((SQLParser.Table_constraintContext)ctx.getChild(i)).children.get(0).toString().toLowerCase().equals("primary") &&
+                            ((SQLParser.Table_constraintContext)ctx.getChild(i)).children.get(1).toString().toLowerCase().equals("key")) {
+                        String columnName = ((SQLParser.Column_nameContext)(((SQLParser.Table_constraintContext)ctx.getChild(i)).children.get(3))).children.get(0).toString().toLowerCase(Locale.ROOT);
+                        int columnNum = columnItems.size();
+                        for(int j = 0; j < columnNum; j++) {
+                            if(columnItems.get(j).getColumnName().equals(columnName)) {
+                                columnItems.get(j).setPrimary(1);
+                            }
+                        }
+                    }
+                }
+            }
+            Column[] columns = new Column[columnItems.size()];
+            for (int i = 0; i < columnItems.size(); i++) {
+                columns[i] = columnItems.get(i);
+            }
+            GetCurrentDB().create(tablename, columns);
+            return "create table " + tablename + " successful";
+        } catch (Exception e) {
+            return e.getMessage();
+        }
+    }
 
     /**
      * TODO
