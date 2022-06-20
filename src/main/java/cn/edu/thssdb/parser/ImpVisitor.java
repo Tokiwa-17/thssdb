@@ -345,7 +345,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
                     }
                 }
             }
-            return "delte successful";
+            return "delete successfully";
         }catch (Exception e){
             return e.getMessage();
         }
@@ -356,8 +356,95 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
      * TODO
      表格项更新
      */
+    private int getIndexOfAttrName (ArrayList<Column> columns, String AttrName) {
+        for (int i = 0; i < columns.size(); ++i) {
+            if (columns.get(i).getColumnName().equals(AttrName)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    ArrayList<Row> getRowsSatisfyWhereClause (Iterator<Row> rowIterator,  ArrayList<Column> columns, SQLParser.ConditionContext updateCondition) {
+        String attrName = null;
+        String attrValue = null;
+        int attrIndex = 0;
+        SQLParser.ComparatorContext comparator = null;
+        Cell compareValue = null;
+        ArrayList<Row>rows = new ArrayList<Row>();
+
+        if (updateCondition != null) {
+            attrName = updateCondition.expression(0).comparer().column_full_name().column_name().getText().toLowerCase();
+            attrValue = updateCondition.expression(1).comparer().literal_value().getText();
+            attrIndex = getIndexOfAttrName(columns, attrName);
+            comparator = updateCondition.comparator();
+            compareValue = parseEntry(attrValue, columns.get(attrIndex));
+        }
+
+        while (rowIterator.hasNext()){
+            Row row = rowIterator.next();
+            Cell columnValue = row.getEntries().get(attrIndex);
+            boolean flag = false;
+            if(comparator == null) {
+                flag = true;
+            } else if (comparator.LT() != null) {
+                if (columnValue.compareTo(compareValue) < 0)
+                    flag = true;
+            } else if(comparator.GT() != null) {
+                if (columnValue.compareTo(compareValue) > 0)
+                    flag = true;
+            } else if(comparator.LE() != null) {
+                if (columnValue.compareTo(compareValue) <= 0)
+                    flag = true;
+            } else if(comparator.GE() != null) {
+                if (columnValue.compareTo(compareValue) >= 0)
+                    flag = true;
+            } else if(comparator.EQ() != null) {
+                if (columnValue.compareTo(compareValue) == 0)
+                    flag = true;
+            } else if(comparator.NE() != null) {
+                if (columnValue.compareTo(compareValue) != 0)
+                    flag = true;
+            }
+            if (flag) {
+                rows.add(row);
+            }
+        }
+        return rows;
+    }
     @Override
-    public String visitUpdate_stmt(SQLParser.Update_stmtContext ctx) {return null;}
+    public String visitUpdate_stmt(SQLParser.Update_stmtContext ctx) {
+        try {
+            //从sql语句解析
+            String tableName = ctx.table_name().getText();
+
+            Database database = Manager.getInstance().getCurrentDatabase();
+            Table table = database.get(tableName);
+            Iterator<Row> rowIterator = table.iterator();
+            // update table_name SET attrName1 = attrValue1
+            String attrName1 = ctx.getChild(3).getText().toLowerCase();
+            int attrIndex1 = getIndexOfAttrName(table.columns, attrName1);
+            if (attrIndex1 == -1) {
+                throw new Exception(tableName + " doesn't have column " + attrName1);
+            }
+
+            Cell attrValue1 = parseEntry(ctx.getChild(5).getText(), table.columns.get(attrIndex1));
+//            SQLParser.ConditionContext whereItem = ctx.multiple_condition().condition();
+            SQLParser.ConditionContext updateCondition = ctx.K_WHERE() == null ? null : ctx.multiple_condition().condition();
+            ArrayList<Row> updatedRows = getRowsSatisfyWhereClause(rowIterator, table.columns, updateCondition);
+
+            for (Row row: updatedRows) {
+//                System.out.println(row.toString());
+                ArrayList<Cell> rowEntries = new ArrayList<Cell>(row.getEntries());
+                rowEntries.set(attrIndex1, attrValue1);
+                table.update(row.getEntries().get(table.primaryIndex), new Row(rowEntries));
+            }
+
+            return "update successfully";
+        }catch (Exception e){
+            return e.getMessage();
+        }
+    }
 
     /**
      * TODO
