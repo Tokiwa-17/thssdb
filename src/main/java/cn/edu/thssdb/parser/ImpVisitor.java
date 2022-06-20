@@ -196,7 +196,11 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
      表格项插入
      */
     @Override
-    public String visitInsert_stmt(SQLParser.Insert_stmtContext ctx) {return null;}
+    public String visitInsert_stmt(SQLParser.Insert_stmtContext ctx) {
+        String tableName = ctx.table_name().children.get(0).toString();
+
+        return null;
+    }
 
     /**
      * TODO

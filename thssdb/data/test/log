@@ -1,0 +1,13 @@
+update
+insert
+insert
+insert
+begin transaction
+insert into person values('Bob', 21)
+commit
+begin transaction
+insert into person
+commit
+begin transaction
+insert into person values('Bob', 21)
+commit
