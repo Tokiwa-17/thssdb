@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuite tests="3" failures="0" name="cn.edu.thssdb.index.BPlusTreeTest" time="0.228" errors="0" skipped="0">
+  <properties>
+    <property name="idea.version" value="2021.3.1"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="java.vm.version" value="18+36-2087"/>
+    <property name="sun.boot.library.path" value="C:\Users\ylf\.jdks\openjdk-18\bin"/>
+    <property name="maven.multiModuleProjectDirectory" value="D:\Github\thssdb"/>
+    <property name="java.vm.vendor" value="Oracle Corporation"/>
+    <property name="java.vendor.url" value="https://java.oracle.com/"/>
+    <property name="guice.disable.misplaced.annotation.check" value="true"/>
+    <property name="path.separator" value=";"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="sun.os.patch.level" value=""/>
+    <property name="user.script" value=""/>
+    <property name="user.country" value="CN"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="user.dir" value="D:\Github\thssdb"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="java.runtime.version" value="18+36-2087"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.io.tmpdir" value="C:\Users\ylf\AppData\Local\Temp\"/>
+    <property name="line.separator" value="
+"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="user.variant" value=""/>
+    <property name="os.name" value="Windows 10"/>
+    <property name="maven.ext.class.path" value="D:\IntellJ\IntelliJ IDEA 2021.3.1\plugins\maven\lib\maven-event-listener.jar"/>
+    <property name="classworlds.conf" value="D:\Maven\apache-maven-3.8.4\bin\m2.conf"/>
+    <property name="sun.jnu.encoding" value="GBK"/>
+    <property name="java.library.path" value="C:\Users\ylf\.jdks\openjdk-18\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\Program Files\Java\jdk1.8.0_261\bin;C:\Program Files\Java\jdk1.8.0_261\jre\bin;D:\Maven\apache-maven-3.8.4\bin;D:\nodejs\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;D:\Git\cmd;C:\Program Files\dotnet\;C:\Program Files\MySQL\MySQL Shell 8.0\bin\;D:\python3.9.1\Scripts\;D:\python3.9.1\;C:\Users\ylf\AppData\Local\Microsoft\WindowsApps;D:\Microsoft VS Code\bin;D:\sublime text\Sublime Text Build 3211 x64;D:\mingw-w64\mingw64\bin;D:\MiKTeX\miktex\bin\x64\;D:\pycharm\PyCharm Community Edition 2020.3.3\bin;;C:\Qt\5.15.2\msvc2019_64\bin;D:\Anaconda\Scripts\;D:\opencv\build\bin;D:\opencv\build\x64\vc15\bin;D:\vs2017\VC\Tools\MSVC\14.28.29333\bin\Hostx64\x86;C:\Users\ylf\AppData\Roaming\Python\Python39\Scripts;%PyCharm%;C:\masm32\bin;C:\Users\ylf\AppData\Local\GitHubDesktop\bin;D:\Julia-1.7.0\bin;D:\IntellJ\IntelliJ IDEA 2021.3.1\bin;;D:\DataGrip\DataGrip 2021.3.3\bin;;C:\Users\ylf\AppData\Roaming\npm;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;D:\Mysql\mysql-8.0.28-winx64\bin;C:\Users\ylf\.dotnet\tools;."/>
+    <property name="maven.conf" value="D:\Maven\apache-maven-3.8.4/conf"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="java.class.version" value="62.0"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="os.version" value="10.0"/>
+    <property name="user.home" value="C:\Users\ylf"/>
+    <property name="user.timezone" value="Asia/Shanghai"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.specification.version" value="18"/>
+    <property name="user.name" value="ylf"/>
+    <property name="java.class.path" value="D:\Maven\apache-maven-3.8.4\boot\plexus-classworlds-2.6.0.jar;D:\Maven\apache-maven-3.8.4\boot\plexus-classworlds.license"/>
+    <property name="java.vm.specification.version" value="18"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="sun.java.command" value="org.codehaus.classworlds.Launcher -Didea.version=2021.3.1 -s D:\Maven\apache-maven-3.8.4\conf\settings.xml install -P thrift-generation"/>
+    <property name="java.home" value="C:\Users\ylf\.jdks\openjdk-18"/>
+    <property name="user.language" value="zh"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="java.version" value="18"/>
+    <property name="native.encoding" value="GBK"/>
+    <property name="java.vendor" value="Oracle Corporation"/>
+    <property name="maven.home" value="D:\Maven\apache-maven-3.8.4"/>
+    <property name="file.separator" value="\"/>
+    <property name="java.version.date" value="2022-03-22"/>
+    <property name="java.vendor.url.bug" value="https://bugreport.java.com/bugreport/"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="sun.cpu.isalist" value="amd64"/>
+  </properties>
+  <testcase classname="cn.edu.thssdb.index.BPlusTreeTest" name="testGet" time="0.064"/>
+  <testcase classname="cn.edu.thssdb.index.BPlusTreeTest" name="testRemove" time="0.052"/>
+  <testcase classname="cn.edu.thssdb.index.BPlusTreeTest" name="testIterator" time="0.112"/>
+</testsuite>

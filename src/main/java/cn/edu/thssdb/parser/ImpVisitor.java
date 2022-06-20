@@ -59,6 +59,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         if (ctx.update_stmt() != null) return new QueryResult(visitUpdate_stmt(ctx.update_stmt()));
         if (ctx.select_stmt() != null) return visitSelect_stmt(ctx.select_stmt());
         if (ctx.quit_stmt() != null) return new QueryResult(visitQuit_stmt(ctx.quit_stmt()));
+        if (ctx.show_meta_stmt() != null) return new QueryResult(visitShow_meta_stmt(ctx.show_meta_stmt()));
         return null;
     }
 
@@ -123,6 +124,39 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         ArrayList<QueryResult> ret = new ArrayList<>();
         for (SQLParser.Sql_stmtContext subCtx : ctx.sql_stmt()) ret.add(visitSql_stmt(subCtx));
         return ret;
+    }
+    /**
+     * TODO
+     展示表格项
+     show table tablename;
+     */
+    @Override
+    public String visitShow_meta_stmt(SQLParser.Show_meta_stmtContext ctx) {
+        try {
+            String tableName = ctx.table_name().children.get(0).toString().toLowerCase(Locale.ROOT);
+            Database currentDB = manager.getCurrentDatabase();
+            Table table = currentDB.get(tableName);
+            ArrayList<Column> columns = new ArrayList<Column>();
+            int columnNum = table.columns.size();
+            String output = "table " + tableName + "\n";
+            for (int i = 0; i < columnNum; i++) {
+                columns.add(table.columns.get(i));
+            }
+            for (int i = 0; i < columnNum; i++) {
+                Column column = columns.get(i);
+                output = output + column.getColumnName().toString().toLowerCase(Locale.ROOT) + "(" + column.getMaxLength() + ")" + "\t" + column.getColumnType().toString().toUpperCase(Locale.ROOT) + "\t";
+                if (columns.get(i).isPrimary()) {
+                    output = output + "PRIMARY KEY\t";
+                }
+                if (columns.get(i).cantBeNull()) {
+                    output = output + "NOT NULL";
+                }
+                output += "\n";
+            }
+            return output + "\n";
+        } catch (Exception e) {
+            return e.getMessage();
+        }
     }
 
     /**
@@ -251,7 +285,6 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         }catch (Exception e){
             return e.getMessage();
         }
-
     }
 
     /**
