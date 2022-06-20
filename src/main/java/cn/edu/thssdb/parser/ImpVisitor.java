@@ -7,6 +7,7 @@ import cn.edu.thssdb.exception.DatabaseNotExistException;
 import cn.edu.thssdb.exception.SchemaLengthMismatchException;
 import cn.edu.thssdb.exception.TableNotExistException;
 import cn.edu.thssdb.query.QueryResult;
+import cn.edu.thssdb.query.QueryTable;
 import cn.edu.thssdb.schema.*;
 import cn.edu.thssdb.type.ColumnType;
 
@@ -306,7 +307,16 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
      表格项查询
      */
     @Override
-    public QueryResult visitSelect_stmt(SQLParser.Select_stmtContext ctx) {return null;}
+    public QueryResult visitSelect_stmt(SQLParser.Select_stmtContext ctx) {
+        //return null;
+        List<SQLParser.Result_columnContext> resultColumns = ctx.result_column();
+        QueryTable[] queryTables = new QueryTable[2];
+        int childrenCount = ctx.getChildCount();
+        for (int i = 0; i < childrenCount; i++) {
+
+        }
+        return null;
+    }
 
     /**
      退出

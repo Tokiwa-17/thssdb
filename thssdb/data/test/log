@@ -17,3 +17,42 @@ commit
 begin transaction
 insert into person values('Bob', 12)
 commit
+begin transaction
+commit
+begin transaction
+commit
+begin transaction
+insert into person values('Bob', 15)
+commit
+begin transaction
+insert into person2 values('Alice', 12)
+commit
+begin transaction
+commit
+begin transaction
+commit
+begin transaction
+commit
+begin transaction
+commit
+begin transaction
+insert into person values('Bob', 15)
+commit
+begin transaction
+insert into person values('Alice', 15)
+commit
+begin transaction
+insert into person values('Carol', 15)
+commit
+begin transaction
+insert into person values('Alice', 12)
+commit
+begin transaction
+commit
+begin transaction
+commit
+begin transaction
+insert into person values('Bob', 15)
+commit
+begin transaction
+commit
