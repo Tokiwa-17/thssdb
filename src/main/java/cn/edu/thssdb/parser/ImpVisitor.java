@@ -259,7 +259,65 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
      表格项删除
      */
     @Override
-    public String visitDelete_stmt(SQLParser.Delete_stmtContext ctx) {return null;}
+    public String visitDelete_stmt(SQLParser.Delete_stmtContext ctx) {
+        try {
+            //从sql语句解析
+            String tableName = ctx.table_name().children.get(0).toString();
+
+
+            Database database = Manager.getInstance().getCurrentDatabase();
+            Table table = database.get(tableName);
+            ArrayList<Column> columns = table.columns;
+
+            Iterator<Row> rowIterator = table.iterator();
+//            SQLParser.ConditionContext whereItem = ctx.multiple_condition().condition();
+            if (ctx.K_WHERE() == null) {
+                while(rowIterator.hasNext()){
+                    Row row = rowIterator.next();
+                    table.delete(row);
+                }
+            } else {
+                String attrName = ctx.multiple_condition().condition().expression(0).comparer().column_full_name().column_name().getText().toLowerCase();
+                String attrValue = ctx.multiple_condition().condition().expression(1).comparer().literal_value().getText();
+                SQLParser.ComparatorContext comparator = ctx.multiple_condition().condition().comparator();
+                int columnIndex = -1;
+                for (int j = 0; j < columns.size(); j++){
+                    if (attrName.equals(columns.get(j).getColumnName())) {
+                        columnIndex = j;
+                        break;
+                    }
+                }
+                Cell compareValue = parseEntry(attrValue, columns.get(columnIndex));
+                while (rowIterator.hasNext()){
+                    Row row = rowIterator.next();
+                    Cell columnValue = row.getEntries().get(columnIndex);
+                    if(comparator.LT() != null){
+                        if(columnValue.compareTo(compareValue) < 0)
+                            table.delete(row);
+                    }else if(comparator.GT() != null){
+                        if (columnValue.compareTo(compareValue) > 0)
+                            table.delete(row);
+                    }else if(comparator.LE() != null){
+                        if (columnValue.compareTo(compareValue) <= 0)
+                            table.delete(row);
+                    }else if(comparator.GE() != null){
+                        if (columnValue.compareTo(compareValue) >= 0)
+                            table.delete(row);
+                    }else if(comparator.EQ() != null){
+                        if (columnValue.compareTo(compareValue) == 0)
+                            table.delete(row);
+                    }else if(comparator.NE() != null){
+                        if (columnValue.compareTo(compareValue) != 0)
+                            table.delete(row);
+                    }
+                }
+            }
+            return "delte successful";
+        }catch (Exception e){
+            return e.getMessage();
+        }
+
+    }
 
     /**
      * TODO
