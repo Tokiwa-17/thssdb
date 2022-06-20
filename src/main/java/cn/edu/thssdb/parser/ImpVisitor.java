@@ -4,14 +4,15 @@ package cn.edu.thssdb.parser;
 // TODO: add logic for some important cases, refer to given implementations and SQLBaseVisitor.java for structures
 
 import cn.edu.thssdb.exception.DatabaseNotExistException;
+import cn.edu.thssdb.exception.SchemaLengthMismatchException;
+import cn.edu.thssdb.exception.TableNotExistException;
 import cn.edu.thssdb.query.QueryResult;
-import cn.edu.thssdb.schema.Column;
-import cn.edu.thssdb.schema.Database;
-import cn.edu.thssdb.schema.Manager;
+import cn.edu.thssdb.schema.*;
 import cn.edu.thssdb.type.ColumnType;
 
-import java.util.ArrayList;
-import java.util.Locale;
+import java.util.*;
+
+import static cn.edu.thssdb.schema.Column.parseEntry;
 
 
 /**
@@ -196,7 +197,62 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
      表格项插入
      */
     @Override
-    public String visitInsert_stmt(SQLParser.Insert_stmtContext ctx) {return null;}
+    public String visitInsert_stmt(SQLParser.Insert_stmtContext ctx) {
+        try {
+            //从sql语句解析
+            String tableName = ctx.table_name().children.get(0).toString();
+            List<SQLParser.Column_nameContext> columnName = ctx.column_name();
+            List<SQLParser.Value_entryContext> values = ctx.value_entry();
+
+            Database database = Manager.getInstance().getCurrentDatabase();
+            Table table = database.get(tableName);
+            ArrayList<Column> columns = table.columns;
+
+            if(columnName.size() == 0) {
+                for (SQLParser.Value_entryContext value: values) {
+                    if (value.literal_value().size() != columns.size()) {
+                        throw new SchemaLengthMismatchException(columns.size(),value.literal_value().size(),"wrong insert operation (columns unmatched)!");
+                    }
+                    ArrayList<Cell> cells = new ArrayList<>();
+
+                    for (int i = 0; i < columns.size(); i++){
+                        cells.add(parseEntry(value.literal_value(i).getText(), columns.get(i))) ;
+                    }
+                    Row newRow = new Row(cells);
+                    table.insert(newRow);
+                }
+            }
+            else {
+                ArrayList<Integer> columnMatch = new ArrayList<>();
+                for(int i = 0 ; i < columnName.size(); i++){
+                    for (int j = 0; j < columns.size(); j++){
+                        if (columnName.get(i).getText().equals(columns.get(j).getColumnName())) {
+                            columnMatch.add(j);
+                            break;
+                        }
+                    }
+                }
+                for (SQLParser.Value_entryContext value: values) {
+                    if (value.literal_value().size() != columnName.size()) {
+                        throw new SchemaLengthMismatchException(columnName.size(),value.literal_value().size(),"wrong insert operation (columns unmatched)!");
+                    }
+                    ArrayList<Cell> cells = new ArrayList<>();
+
+                    for (int i = 0; i < columnName.size(); i++){
+                        cells.add(parseEntry(value.literal_value(i).getText(), columns.get(columnMatch.get(i)))) ;
+                    }
+                    Row newRow = new Row(cells);
+                    table.insert(newRow);
+                }
+            }
+
+            return "insert successful";
+
+        }catch (Exception e){
+            return e.getMessage();
+        }
+
+    }
 
     /**
      * TODO
