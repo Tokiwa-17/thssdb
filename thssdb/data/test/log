@@ -11,3 +11,9 @@ commit
 begin transaction
 insert into person values('Bob', 21)
 commit
+begin transaction
+insert into person values('Bob', 123)
+commit
+begin transaction
+insert into person values('Bob', 12)
+commit
