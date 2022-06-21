@@ -7,6 +7,7 @@ import cn.edu.thssdb.exception.DatabaseNotExistException;
 import cn.edu.thssdb.exception.SchemaLengthMismatchException;
 import cn.edu.thssdb.exception.TableNotExistException;
 import cn.edu.thssdb.query.QueryResult;
+import cn.edu.thssdb.query.QueryTable;
 import cn.edu.thssdb.schema.*;
 import cn.edu.thssdb.type.ColumnType;
 
@@ -356,7 +357,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
      * TODO
      表格项更新
      */
-    private int getIndexOfAttrName (ArrayList<Column> columns, String AttrName) {
+    public static int getIndexOfAttrName (ArrayList<Column> columns, String AttrName) {
         for (int i = 0; i < columns.size(); ++i) {
             if (columns.get(i).getColumnName().equals(AttrName)) {
                 return i;
@@ -365,7 +366,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         return -1;
     }
 
-    ArrayList<Row> getRowsSatisfyWhereClause (Iterator<Row> rowIterator,  ArrayList<Column> columns, SQLParser.ConditionContext updateCondition) {
+    public static ArrayList<Row> getRowsSatisfyWhereClause (Iterator<Row> rowIterator,  ArrayList<Column> columns, SQLParser.ConditionContext updateCondition) {
         String attrName = null;
         String attrValue = null;
         int attrIndex = 0;
@@ -450,8 +451,79 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
      * TODO
      表格项查询
      */
+    QueryTable getQueryTableFromSingleTable(SQLParser.Table_nameContext ctx) {
+        Database database = Manager.getInstance().getCurrentDatabase();
+        Table table = database.get(ctx.getText());
+        QueryTable queryTable = new QueryTable(table);
+        return queryTable;
+    }
+    QueryTable getQueryTable(SQLParser.Table_queryContext ctx) {
+        if (ctx.getChildCount() == 1) {
+            return getQueryTableFromSingleTable(ctx.table_name(0));
+        }
+
+        SQLParser.Table_queryContext left_query = ctx.table_query();
+        QueryTable left_table = null, right_table = null;
+        if (left_query == null) {
+            left_table = getQueryTableFromSingleTable(ctx.table_name(0));
+            right_table = getQueryTableFromSingleTable(ctx.table_name(1));
+        } else {
+            left_table = getQueryTable(left_query);
+            right_table = getQueryTableFromSingleTable(ctx.table_name(0));
+        }
+        SQLParser.ConditionContext joinCondition = null;
+        if (ctx.K_ON() != null) {
+            joinCondition = ctx.multiple_condition().condition();
+        }
+        QueryTable cross_table = new QueryTable(left_table, right_table, joinCondition);
+        return cross_table;
+    }
+
     @Override
-    public QueryResult visitSelect_stmt(SQLParser.Select_stmtContext ctx) {return null;}
+    public QueryResult visitSelect_stmt(SQLParser.Select_stmtContext ctx) {
+        try {
+            // 先处理from子句
+            List<SQLParser.Table_queryContext> querys = ctx.table_query();
+            // 有多个逗号隔开的table,先分别算出每一个（目前认为只有一个）
+            QueryTable queryResult = null;
+            for(SQLParser.Table_queryContext query : querys) {
+                if (queryResult == null) {
+                    queryResult = getQueryTable(query);
+                } else {
+                    queryResult = new QueryTable(queryResult, getQueryTable(query), null);
+                }
+            }
+            // 处理where子句
+            if (ctx.K_WHERE() != null) {
+                SQLParser.ConditionContext selectCondition = ctx.multiple_condition().condition();
+                ArrayList<Row> newRows = getRowsSatisfyWhereClause(queryResult.iterator(), queryResult.columns, selectCondition);
+                queryResult.rows = newRows;
+            }
+            // 处理select子句
+            List<SQLParser.Result_columnContext> columnContexts = ctx.result_column();
+            ArrayList<Integer> columnIndexs = new ArrayList<>();
+            ArrayList<String> finalColumnNames = new ArrayList<>();
+            for (SQLParser.Result_columnContext columnContext : columnContexts) {
+                String columnName = columnContext.column_full_name().getText().toLowerCase();
+                finalColumnNames.add(columnName);
+                int index = getIndexOfAttrName(queryResult.columns, columnName);
+                columnIndexs.add(index);
+            }
+
+            ArrayList<Row> finalRows = new ArrayList<>();
+            for (Row row : queryResult.rows) {
+                ArrayList<Cell> finalRowEntries = new ArrayList<>();
+                for (int index : columnIndexs) {
+                    finalRowEntries.add(row.getEntries().get(index));
+                }
+                finalRows.add(new Row(finalRowEntries));
+            }
+
+            return new QueryResult(finalRows, finalColumnNames);
+        } catch (Exception e){
+            return new QueryResult(e.getMessage());
+        }
+    }
 
     /**
      退出
