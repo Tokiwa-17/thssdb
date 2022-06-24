@@ -1,9 +1,6 @@
 package cn.edu.thssdb.query;
 
-<<<<<<< HEAD
-import cn.edu.thssdb.index.BPlusTree;
-import cn.edu.thssdb.schema.Row;
-=======
+
 import cn.edu.thssdb.common.Pair;
 import cn.edu.thssdb.parser.ImpVisitor;
 import cn.edu.thssdb.parser.SQLParser;
@@ -11,7 +8,6 @@ import cn.edu.thssdb.schema.Cell;
 import cn.edu.thssdb.schema.Column;
 import cn.edu.thssdb.schema.Row;
 import cn.edu.thssdb.schema.Table;
->>>>>>> ba0c782aca6610fe9091187e6b4e6519d2f8136c
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -23,21 +19,10 @@ import java.util.LinkedList;
  * next() returns a row, plz keep an iterator.
  */
 
-<<<<<<< HEAD
-public class QueryTable implements Iterator<Row> {
-  private ArrayList<String> columns;
-  private String tableName;
-  public QueryTable(String tableName, ArrayList<String> columns) {
-    // TODO
-    this.tableName = tableName;
-    this.columns = columns;
-  }
-=======
 public class QueryTable implements Iterable<Row> {
 
   public ArrayList<Column> columns;
   public ArrayList<Row> rows;
->>>>>>> ba0c782aca6610fe9091187e6b4e6519d2f8136c
 
   public QueryTable(Table table) {
     this.columns = new ArrayList<>();
