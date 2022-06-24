@@ -1,4 +1,4 @@
-// Generated from C:/Users/75987/Desktop/Database/ThssDB/src/main/java/cn/edu/thssdb/parser\SQL.g4 by ANTLR 4.9.1
+// Generated from C:/Users/12419/Desktop/Course/数据库/大作业2022/thssdb/src/main/java/cn/edu/thssdb/parser\SQL.g4 by ANTLR 4.10.1
 package cn.edu.thssdb.parser;
 
 import org.antlr.v4.runtime.ParserRuleContext;

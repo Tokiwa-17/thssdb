@@ -22,7 +22,7 @@ public class Table implements Iterable<Row> {
   public String tableName;
   public ArrayList<Column> columns;
   public BPlusTree<Cell, Row> index;
-  private int primaryIndex;
+  public int primaryIndex;
 
   // ADD lock variables for S, X locks and etc here.
 
@@ -114,10 +114,11 @@ public class Table implements Iterable<Row> {
       // TODO lock control.
       this.checkRowValidInTable(newRow);
       Row oldRow = this.get(primaryCell);
-      if(this.containsRow(newRow))
+      Cell newPrimaryValue = newRow.getEntries().get(this.primaryIndex);
+      if(!primaryCell.equals(newPrimaryValue) && this.containsRow(newRow)) // 不抛出异常
         throw new DuplicateKeyException();   // 要么删并插入，要么抛出异常
       this.index.remove(primaryCell);
-      this.index.put(newRow.getEntries().get(this.primaryIndex), newRow);
+      this.index.put(newPrimaryValue, newRow);
     }finally {
       // TODO lock control.
     }

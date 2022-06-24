@@ -346,7 +346,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
                     }
                 }
             }
-            return "delte successful";
+            return "delete successfully";
         }catch (Exception e){
             return e.getMessage();
         }
@@ -357,60 +357,171 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
      * TODO
      表格项更新
      */
+    public static int getIndexOfAttrName (ArrayList<Column> columns, String AttrName) {
+        for (int i = 0; i < columns.size(); ++i) {
+            if (columns.get(i).getColumnName().equals(AttrName)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public static ArrayList<Row> getRowsSatisfyWhereClause (Iterator<Row> rowIterator,  ArrayList<Column> columns, SQLParser.ConditionContext updateCondition) {
+        String attrName = null;
+        String attrValue = null;
+        int attrIndex = 0;
+        SQLParser.ComparatorContext comparator = null;
+        Cell compareValue = null;
+        ArrayList<Row>rows = new ArrayList<Row>();
+
+        if (updateCondition != null) {
+            attrName = updateCondition.expression(0).comparer().column_full_name().column_name().getText().toLowerCase();
+            attrValue = updateCondition.expression(1).comparer().literal_value().getText();
+            attrIndex = getIndexOfAttrName(columns, attrName);
+            comparator = updateCondition.comparator();
+            compareValue = parseEntry(attrValue, columns.get(attrIndex));
+        }
+
+        while (rowIterator.hasNext()){
+            Row row = rowIterator.next();
+            Cell columnValue = row.getEntries().get(attrIndex);
+            boolean flag = false;
+            if(comparator == null) {
+                flag = true;
+            } else if (comparator.LT() != null) {
+                if (columnValue.compareTo(compareValue) < 0)
+                    flag = true;
+            } else if(comparator.GT() != null) {
+                if (columnValue.compareTo(compareValue) > 0)
+                    flag = true;
+            } else if(comparator.LE() != null) {
+                if (columnValue.compareTo(compareValue) <= 0)
+                    flag = true;
+            } else if(comparator.GE() != null) {
+                if (columnValue.compareTo(compareValue) >= 0)
+                    flag = true;
+            } else if(comparator.EQ() != null) {
+                if (columnValue.compareTo(compareValue) == 0)
+                    flag = true;
+            } else if(comparator.NE() != null) {
+                if (columnValue.compareTo(compareValue) != 0)
+                    flag = true;
+            }
+            if (flag) {
+                rows.add(row);
+            }
+        }
+        return rows;
+    }
     @Override
-    public String visitUpdate_stmt(SQLParser.Update_stmtContext ctx) {return null;}
+    public String visitUpdate_stmt(SQLParser.Update_stmtContext ctx) {
+        try {
+            //从sql语句解析
+            String tableName = ctx.table_name().getText();
+
+            Database database = Manager.getInstance().getCurrentDatabase();
+            Table table = database.get(tableName);
+            Iterator<Row> rowIterator = table.iterator();
+            // update table_name SET attrName1 = attrValue1
+            String attrName1 = ctx.getChild(3).getText().toLowerCase();
+            int attrIndex1 = getIndexOfAttrName(table.columns, attrName1);
+            if (attrIndex1 == -1) {
+                throw new Exception(tableName + " doesn't have column " + attrName1);
+            }
+
+            Cell attrValue1 = parseEntry(ctx.getChild(5).getText(), table.columns.get(attrIndex1));
+//            SQLParser.ConditionContext whereItem = ctx.multiple_condition().condition();
+            SQLParser.ConditionContext updateCondition = ctx.K_WHERE() == null ? null : ctx.multiple_condition().condition();
+            ArrayList<Row> updatedRows = getRowsSatisfyWhereClause(rowIterator, table.columns, updateCondition);
+
+            for (Row row: updatedRows) {
+//                System.out.println(row.toString());
+                ArrayList<Cell> rowEntries = new ArrayList<Cell>(row.getEntries());
+                rowEntries.set(attrIndex1, attrValue1);
+                table.update(row.getEntries().get(table.primaryIndex), new Row(rowEntries));
+            }
+
+            return "update successfully";
+        }catch (Exception e){
+            return e.getMessage();
+        }
+    }
 
     /**
      * TODO
      表格项查询
      */
+    QueryTable getQueryTableFromSingleTable(SQLParser.Table_nameContext ctx) {
+        Database database = Manager.getInstance().getCurrentDatabase();
+        Table table = database.get(ctx.getText());
+        QueryTable queryTable = new QueryTable(table);
+        return queryTable;
+    }
+    QueryTable getQueryTable(SQLParser.Table_queryContext ctx) {
+        if (ctx.getChildCount() == 1) {
+            return getQueryTableFromSingleTable(ctx.table_name(0));
+        }
+
+        SQLParser.Table_queryContext left_query = ctx.table_query();
+        QueryTable left_table = null, right_table = null;
+        if (left_query == null) {
+            left_table = getQueryTableFromSingleTable(ctx.table_name(0));
+            right_table = getQueryTableFromSingleTable(ctx.table_name(1));
+        } else {
+            left_table = getQueryTable(left_query);
+            right_table = getQueryTableFromSingleTable(ctx.table_name(0));
+        }
+        SQLParser.ConditionContext joinCondition = null;
+        if (ctx.K_ON() != null) {
+            joinCondition = ctx.multiple_condition().condition();
+        }
+        QueryTable cross_table = new QueryTable(left_table, right_table, joinCondition);
+        return cross_table;
+    }
+
     @Override
     public QueryResult visitSelect_stmt(SQLParser.Select_stmtContext ctx) {
-        //return null;
-        List<SQLParser.Result_columnContext> resultColumns = ctx.result_column();
-        int tableCount = ctx.table_query().size();
-        if (tableCount == 1) {
-            String tableName = ctx.table_query(0).table_name(0).IDENTIFIER().toString().toLowerCase(Locale.ROOT);
-            ArrayList<String> columns = new ArrayList<>();
-            int columnsCount = resultColumns.size();
-            if (columnsCount == 1 && resultColumns.get(0).children.get(0).toString().equals("*")) {
-                Database database = manager.getCurrentDatabase();
-                Table table = database.get(tableName);
-                for (int i = 0; i < table.columns.size(); i++) {
-                    String columnName = table.columns.get(i).getColumnName().toLowerCase(Locale.ROOT);
-                    columns.add(columnName);
-                }
-            } else {
-                for (int i = 0; i < columnsCount; i++) {
-                    SQLParser.Column_full_nameContext columnFullName = resultColumns.get(i).column_full_name();
-                    String columnName = columnFullName.column_name().children.get(0).toString().toLowerCase(Locale.ROOT);
-                    columns.add(columnName);
-                }
-            }
-            QueryTable[] queryTables = new QueryTable[1];
-            queryTables[0] = new QueryTable(tableName, columns);
-            return new QueryResult(queryTables);
-        } else {
-            String tableName1 = ctx.table_query(0).table_name().toString().toLowerCase(Locale.ROOT);
-            String tableName2 = ctx.table_query(1).table_name().toString().toLowerCase(Locale.ROOT);
-            ArrayList<String> columns1 = new ArrayList<>();
-            ArrayList<String> columns2 = new ArrayList<>();
-            int columnsCount = resultColumns.size();
-            for (int i = 0; i < columnsCount; i++) {
-                SQLParser.Column_full_nameContext columnFullName = resultColumns.get(i).column_full_name();
-                String tableName = columnFullName.table_name().children.get(0).toString().toLowerCase(Locale.ROOT);
-                String columnName = columnFullName.column_name().children.get(0).toString().toLowerCase(Locale.ROOT);
-                if (tableName.equals(tableName1)) {
-                    columns1.add(columnName);
+        try {
+            // 先处理from子句
+            List<SQLParser.Table_queryContext> querys = ctx.table_query();
+            // 有多个逗号隔开的table,先分别算出每一个（目前认为只有一个）
+            QueryTable queryResult = null;
+            for(SQLParser.Table_queryContext query : querys) {
+                if (queryResult == null) {
+                    queryResult = getQueryTable(query);
                 } else {
-                    columns2.add(columnName);
+                    queryResult = new QueryTable(queryResult, getQueryTable(query), null);
                 }
             }
-            QueryTable[] queryTables = new QueryTable[2];
-            queryTables[0] = new QueryTable(tableName1, columns1);
-            queryTables[1] = new QueryTable(tableName2, columns2);
+            // 处理where子句
+            if (ctx.K_WHERE() != null) {
+                SQLParser.ConditionContext selectCondition = ctx.multiple_condition().condition();
+                ArrayList<Row> newRows = getRowsSatisfyWhereClause(queryResult.iterator(), queryResult.columns, selectCondition);
+                queryResult.rows = newRows;
+            }
+            // 处理select子句
+            List<SQLParser.Result_columnContext> columnContexts = ctx.result_column();
+            ArrayList<Integer> columnIndexs = new ArrayList<>();
+            ArrayList<String> finalColumnNames = new ArrayList<>();
+            for (SQLParser.Result_columnContext columnContext : columnContexts) {
+                String columnName = columnContext.column_full_name().getText().toLowerCase();
+                finalColumnNames.add(columnName);
+                int index = getIndexOfAttrName(queryResult.columns, columnName);
+                columnIndexs.add(index);
+            }
 
-            return new QueryResult(queryTables);
+            ArrayList<Row> finalRows = new ArrayList<>();
+            for (Row row : queryResult.rows) {
+                ArrayList<Cell> finalRowEntries = new ArrayList<>();
+                for (int index : columnIndexs) {
+                    finalRowEntries.add(row.getEntries().get(index));
+                }
+                finalRows.add(new Row(finalRowEntries));
+            }
+
+            return new QueryResult(finalRows, finalColumnNames);
+        } catch (Exception e){
+            return new QueryResult(e.getMessage());
         }
     }
 
