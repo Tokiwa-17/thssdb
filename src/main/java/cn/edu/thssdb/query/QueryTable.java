@@ -1,6 +1,9 @@
 package cn.edu.thssdb.query;
 
+import cn.edu.thssdb.index.BPlusTree;
 import cn.edu.thssdb.schema.Row;
+
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -11,9 +14,12 @@ import java.util.LinkedList;
  */
 
 public class QueryTable implements Iterator<Row> {
-
-  QueryTable() {
+  private ArrayList<String> columns;
+  private String tableName;
+  public QueryTable(String tableName, ArrayList<String> columns) {
     // TODO
+    this.tableName = tableName;
+    this.columns = columns;
   }
 
   @Override

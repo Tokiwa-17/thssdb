@@ -293,7 +293,65 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
      表格项删除
      */
     @Override
-    public String visitDelete_stmt(SQLParser.Delete_stmtContext ctx) {return null;}
+    public String visitDelete_stmt(SQLParser.Delete_stmtContext ctx) {
+        try {
+            //从sql语句解析
+            String tableName = ctx.table_name().children.get(0).toString();
+
+
+            Database database = Manager.getInstance().getCurrentDatabase();
+            Table table = database.get(tableName);
+            ArrayList<Column> columns = table.columns;
+
+            Iterator<Row> rowIterator = table.iterator();
+//            SQLParser.ConditionContext whereItem = ctx.multiple_condition().condition();
+            if (ctx.K_WHERE() == null) {
+                while(rowIterator.hasNext()){
+                    Row row = rowIterator.next();
+                    table.delete(row);
+                }
+            } else {
+                String attrName = ctx.multiple_condition().condition().expression(0).comparer().column_full_name().column_name().getText().toLowerCase();
+                String attrValue = ctx.multiple_condition().condition().expression(1).comparer().literal_value().getText();
+                SQLParser.ComparatorContext comparator = ctx.multiple_condition().condition().comparator();
+                int columnIndex = -1;
+                for (int j = 0; j < columns.size(); j++){
+                    if (attrName.equals(columns.get(j).getColumnName())) {
+                        columnIndex = j;
+                        break;
+                    }
+                }
+                Cell compareValue = parseEntry(attrValue, columns.get(columnIndex));
+                while (rowIterator.hasNext()){
+                    Row row = rowIterator.next();
+                    Cell columnValue = row.getEntries().get(columnIndex);
+                    if(comparator.LT() != null){
+                        if(columnValue.compareTo(compareValue) < 0)
+                            table.delete(row);
+                    }else if(comparator.GT() != null){
+                        if (columnValue.compareTo(compareValue) > 0)
+                            table.delete(row);
+                    }else if(comparator.LE() != null){
+                        if (columnValue.compareTo(compareValue) <= 0)
+                            table.delete(row);
+                    }else if(comparator.GE() != null){
+                        if (columnValue.compareTo(compareValue) >= 0)
+                            table.delete(row);
+                    }else if(comparator.EQ() != null){
+                        if (columnValue.compareTo(compareValue) == 0)
+                            table.delete(row);
+                    }else if(comparator.NE() != null){
+                        if (columnValue.compareTo(compareValue) != 0)
+                            table.delete(row);
+                    }
+                }
+            }
+            return "delte successful";
+        }catch (Exception e){
+            return e.getMessage();
+        }
+
+    }
 
     /**
      * TODO
@@ -310,12 +368,50 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
     public QueryResult visitSelect_stmt(SQLParser.Select_stmtContext ctx) {
         //return null;
         List<SQLParser.Result_columnContext> resultColumns = ctx.result_column();
-        QueryTable[] queryTables = new QueryTable[2];
-        int childrenCount = ctx.getChildCount();
-        for (int i = 0; i < childrenCount; i++) {
+        int tableCount = ctx.table_query().size();
+        if (tableCount == 1) {
+            String tableName = ctx.table_query(0).table_name(0).IDENTIFIER().toString().toLowerCase(Locale.ROOT);
+            ArrayList<String> columns = new ArrayList<>();
+            int columnsCount = resultColumns.size();
+            if (columnsCount == 1 && resultColumns.get(0).children.get(0).toString().equals("*")) {
+                Database database = manager.getCurrentDatabase();
+                Table table = database.get(tableName);
+                for (int i = 0; i < table.columns.size(); i++) {
+                    String columnName = table.columns.get(i).getColumnName().toLowerCase(Locale.ROOT);
+                    columns.add(columnName);
+                }
+            } else {
+                for (int i = 0; i < columnsCount; i++) {
+                    SQLParser.Column_full_nameContext columnFullName = resultColumns.get(i).column_full_name();
+                    String columnName = columnFullName.column_name().children.get(0).toString().toLowerCase(Locale.ROOT);
+                    columns.add(columnName);
+                }
+            }
+            QueryTable[] queryTables = new QueryTable[1];
+            queryTables[0] = new QueryTable(tableName, columns);
+            return new QueryResult(queryTables);
+        } else {
+            String tableName1 = ctx.table_query(0).table_name().toString().toLowerCase(Locale.ROOT);
+            String tableName2 = ctx.table_query(1).table_name().toString().toLowerCase(Locale.ROOT);
+            ArrayList<String> columns1 = new ArrayList<>();
+            ArrayList<String> columns2 = new ArrayList<>();
+            int columnsCount = resultColumns.size();
+            for (int i = 0; i < columnsCount; i++) {
+                SQLParser.Column_full_nameContext columnFullName = resultColumns.get(i).column_full_name();
+                String tableName = columnFullName.table_name().children.get(0).toString().toLowerCase(Locale.ROOT);
+                String columnName = columnFullName.column_name().children.get(0).toString().toLowerCase(Locale.ROOT);
+                if (tableName.equals(tableName1)) {
+                    columns1.add(columnName);
+                } else {
+                    columns2.add(columnName);
+                }
+            }
+            QueryTable[] queryTables = new QueryTable[2];
+            queryTables[0] = new QueryTable(tableName1, columns1);
+            queryTables[1] = new QueryTable(tableName2, columns2);
 
+            return new QueryResult(queryTables);
         }
-        return null;
     }
 
     /**

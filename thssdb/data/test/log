@@ -56,3 +56,46 @@ insert into person values('Bob', 15)
 commit
 begin transaction
 commit
+begin transaction
+insert into person values('Alice', 1)
+commit
+begin transaction
+insert into person values('Bob', 2)
+commit
+begin transaction
+insert into person values('Carol', 3)
+commit
+begin transaction
+insert into person2 values('Dave', 4)
+commit
+begin transaction
+insert into person2 values('Eve', 5)
+commit
+begin transaction
+commit
+begin transaction
+commit
+begin transaction
+commit
+begin transaction
+commit
+begin transaction
+commit
+begin transaction
+commit
+begin transaction
+commit
+begin transaction
+commit
+begin transaction
+commit
+begin transaction
+commit
+begin transaction
+insert into person values('Alice', 1)
+commit
+begin transaction
+insert into person values('Bob', 2)
+commit
+begin transaction
+commit
