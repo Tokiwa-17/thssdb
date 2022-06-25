@@ -32,6 +32,10 @@ public class Database {
     recover();
   }
 
+  public String getName()
+  {
+    return this.databaseName;
+  }
 
   // Operations: (basic) persist, create tables
   private void persist() {
@@ -55,6 +59,7 @@ public class Database {
   public void create(String tableName, Column[] columns) {
     try {
       // TODO add lock control.
+      lock.writeLock().lock();
       if (this.tableMap.containsKey(tableName))
         throw new DuplicateTableException(tableName);
       Table table = new Table(this.databaseName, tableName, columns);
@@ -62,23 +67,27 @@ public class Database {
       this.persist();
     } finally {
       // TODO add lock control.
+      this.lock.writeLock().unlock();
     }
   }
 
   public Table get(String tableName) {
     try {
       // TODO add lock control.
+      lock.readLock().lock();
       if (!this.tableMap.containsKey(tableName))
         throw new TableNotExistException(tableName);
       return this.tableMap.get(tableName);
     } finally {
       // TODO add lock control.
+      lock.readLock().unlock();
     }
   }
 
   public void drop(String tableName) {
     try {
       // TODO add lock control.
+      lock.writeLock().lock();
       if (!this.tableMap.containsKey(tableName))
         throw new TableNotExistException(tableName);
       Table table = this.tableMap.get(tableName);
@@ -91,12 +100,14 @@ public class Database {
       this.tableMap.remove(tableName);
     } finally {
       // TODO add lock control.
+      lock.writeLock().unlock();
     }
   }
 
   public void dropDatabase() {
     try {
       // TODO add lock control.
+      lock.writeLock().lock();
       for (Table table : this.tableMap.values()) {
         File file = new File(table.getTableMetaPath());
         if (file.isFile()&&!file.delete())
@@ -107,6 +118,7 @@ public class Database {
       this.tableMap = null;
     } finally {
       // TODO add lock control.
+      lock.writeLock().unlock();
     }
   }
 

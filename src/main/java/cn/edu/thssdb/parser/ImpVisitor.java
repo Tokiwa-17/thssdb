@@ -11,6 +11,9 @@ import cn.edu.thssdb.query.QueryTable;
 import cn.edu.thssdb.schema.*;
 import cn.edu.thssdb.type.ColumnType;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 import static cn.edu.thssdb.schema.Column.parseEntry;
@@ -61,6 +64,16 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         if (ctx.select_stmt() != null) return visitSelect_stmt(ctx.select_stmt());
         if (ctx.quit_stmt() != null) return new QueryResult(visitQuit_stmt(ctx.quit_stmt()));
         if (ctx.show_meta_stmt() != null) return new QueryResult(visitShow_meta_stmt(ctx.show_meta_stmt()));
+        if (ctx.begin_transaction_stmt() != null) return new QueryResult(visitBegin_transaction_stmt(ctx.begin_transaction_stmt()));
+        if (ctx.commit_stmt() != null) return new QueryResult(visitCommit_stmt(ctx.commit_stmt()));
+        if (ctx.auto_begin_transaction_stmt() != null) {
+            String message = visitAuto_begin_transaction_stmt(ctx.auto_begin_transaction_stmt());
+            return new QueryResult(message);
+        }
+        if (ctx.auto_commit_stmt() != null) {
+            String message = visitAuto_commit_stmt(ctx.auto_commit_stmt());
+            return new QueryResult(message);
+        }
         return null;
     }
 
@@ -434,11 +447,62 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
             SQLParser.ConditionContext updateCondition = ctx.K_WHERE() == null ? null : ctx.multiple_condition().condition();
             ArrayList<Row> updatedRows = getRowsSatisfyWhereClause(rowIterator, table.columns, updateCondition);
 
-            for (Row row: updatedRows) {
+            if (manager.transaction_sessions.contains(session)) {
+                while(true) {
+                    if(!manager.session_queue.contains(session))  { //新加入一个session
+                        int get_lock = table.get_x_lock(session);
+                        if(get_lock!=-1) {
+                            if(get_lock==1) {
+                                ArrayList<String> tmp = manager.x_lock_dict.get(session);
+                                tmp.add(tableName);
+                                manager.x_lock_dict.put(session,tmp);
+                            }
+                            break;
+                        } else {
+                            manager.session_queue.add(session);
+                        }
+                    } else  {  //之前等待的session
+                        if(manager.session_queue.get(0)==session) { //只查看阻塞队列开头session
+                            int get_lock = table.get_x_lock(session);
+                            if(get_lock!=-1) {
+                                if(get_lock==1) {
+                                    ArrayList<String> tmp = manager.x_lock_dict.get(session);
+                                    tmp.add(tableName);
+                                    manager.x_lock_dict.put(session,tmp);
+                                }
+                                manager.session_queue.remove(0);
+                                break;
+                            }
+                        }
+                    }
+                    try
+                    {
+                        //System.out.print("session: "+session+": ");
+                        //System.out.println(manager.session_queue);
+                        Thread.sleep(500);   // 休眠3秒
+                    } catch (Exception e) {
+                        System.out.println("Got an exception!");
+                    }
+                }
+
+                try {
+                    for (Row row: updatedRows) {
 //                System.out.println(row.toString());
-                ArrayList<Cell> rowEntries = new ArrayList<Cell>(row.getEntries());
-                rowEntries.set(attrIndex1, attrValue1);
-                table.update(row.getEntries().get(table.primaryIndex), new Row(rowEntries));
+                        ArrayList<Cell> rowEntries = new ArrayList<Cell>(row.getEntries());
+                        rowEntries.set(attrIndex1, attrValue1);
+                        table.update(row.getEntries().get(table.primaryIndex), new Row(rowEntries));
+                    }
+                } catch (Exception e) {
+                    return e.toString();
+                }
+            }
+            else {
+                for (Row row: updatedRows) {
+//                System.out.println(row.toString());
+                    ArrayList<Cell> rowEntries = new ArrayList<Cell>(row.getEntries());
+                    rowEntries.set(attrIndex1, attrValue1);
+                    table.update(row.getEntries().get(table.primaryIndex), new Row(rowEntries));
+                }
             }
 
             return "update successfully";
@@ -518,8 +582,83 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
                 }
                 finalRows.add(new Row(finalRowEntries));
             }
+            ArrayList<String> table_names = new ArrayList<>();
+            //System.out.println("table names: " + ctx.table_query());
+            for (SQLParser.Table_nameContext subCtx : ctx.table_query(0).table_name()) {
+                //System.out.println("table name: " + subCtx.getText().toLowerCase());
+                table_names.add(subCtx.getText().toLowerCase());
+            }
+            if(manager.transaction_sessions.contains(session)) {
+                //manager.session_queue.add(session);
+                while(true)
+                {
+                    if(!manager.session_queue.contains(session))   //新加入一个session
+                    {
+                        ArrayList<Integer> lock_result = new ArrayList<>();
+                        for (String name : table_names) {
+                            Table the_table = GetCurrentDB().get(name);
+                            int get_lock = the_table.get_s_lock(session);
+                            lock_result.add(get_lock);
+                        }
+                        if(lock_result.contains(-1))
+                        {
+                            for (String table_name : table_names) {
+                                Table the_table = GetCurrentDB().get(table_name);
+                                the_table.free_s_lock(session);
+                            }
+                            manager.session_queue.add(session);
 
-            return new QueryResult(finalRows, finalColumnNames);
+                        }else
+                        {
+                            break;
+                        }
+                    }else    //之前等待的session
+                    {
+                        if(manager.session_queue.get(0)==session)  //只查看阻塞队列开头session
+                        {
+                            ArrayList<Integer> lock_result = new ArrayList<>();
+                            for (String name : table_names) {
+                                Table the_table = GetCurrentDB().get(name);
+                                int get_lock = the_table.get_s_lock(session);
+                                lock_result.add(get_lock);
+                            }
+                            if(!lock_result.contains(-1))
+                            {
+                                manager.session_queue.remove(0);
+                                break;
+                            }else
+                            {
+                                for (String table_name : table_names) {
+                                    Table the_table = GetCurrentDB().get(table_name);
+                                    the_table.free_s_lock(session);
+                                }
+                                throw new RuntimeException("Read uncommitted data!");
+                            }
+                        }
+                    }
+                    try
+                    {
+                        //System.out.print("session: "+session+": ");
+                        //System.out.println(manager.session_queue);
+                        Thread.sleep(500);   // 休眠3秒
+                    } catch (Exception e) {
+                        System.out.println("Got an exception!");
+                    }
+                }
+                try {
+                    for (String table_name : table_names) {
+                        Table the_table = GetCurrentDB().get(table_name);
+                        the_table.free_s_lock(session);
+                    }
+                    return new QueryResult(finalRows, finalColumnNames);
+                } catch (Exception e) {
+                    QueryResult error_result = new QueryResult(e.toString());
+                    return error_result;
+                }
+            }
+                return new QueryResult(finalRows, finalColumnNames);
+
+
         } catch (Exception e){
             return new QueryResult(e.getMessage());
         }
@@ -537,4 +676,118 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         }
         return "Quit.";
     }
+
+    /*
+    开始transaction
+    */
+    public String visitBegin_transaction_stmt(SQLParser.Begin_transaction_stmtContext ctx) {
+        try{
+            if (manager.transaction_sessions==null || !manager.transaction_sessions.contains(session) || !manager.transaction_sessions.contains(session)) {
+                manager.transaction_sessions.add(session);
+                ArrayList<String> s_lock_tables = new ArrayList<>();
+                ArrayList<String> x_lock_tables = new ArrayList<>();
+                manager.s_lock_dict.put(session,s_lock_tables);
+                manager.x_lock_dict.put(session,x_lock_tables);
+            } else {
+                System.out.println("session already in a transaction.");
+            }
+
+        }catch (Exception e){
+            return e.getMessage();
+        }
+        return "start transaction";
+    }
+
+
+    /*
+    自动开始transaction
+    */
+    public String visitAuto_begin_transaction_stmt(SQLParser.Auto_begin_transaction_stmtContext ctx) {
+        try{
+            if (!manager.transaction_sessions.contains(session)){
+                manager.transaction_sessions.add(session);
+                ArrayList<String> s_lock_tables = new ArrayList<>();
+                ArrayList<String> x_lock_tables = new ArrayList<>();
+                manager.s_lock_dict.put(session,s_lock_tables);
+                manager.x_lock_dict.put(session,x_lock_tables);
+            }else{
+                System.out.println("session already in a transaction.");
+            }
+
+        }catch (Exception e){
+            return e.getMessage();
+        }
+        return "autostart transaction";
+    }
+
+    /*
+    commit
+     */
+    public String visitCommit_stmt(SQLParser.Commit_stmtContext ctx) {
+        try{
+            if (manager.transaction_sessions.contains(session)){
+                Database the_database = GetCurrentDB();
+                String db_name = the_database.getName();
+                manager.transaction_sessions.remove(session);
+                ArrayList<String> table_list = manager.x_lock_dict.get(session);
+                for (String table_name : table_list) {
+                    Table the_table = the_database.get(table_name);
+                    the_table.free_x_lock(session);
+                    //the_table.unpin();
+                }
+                table_list.clear();
+                manager.x_lock_dict.put(session,table_list);
+
+//                String log_name = DATA_DIRECTORY + db_name + ".log";
+//                File file = new File(log_name);
+//                if(file.exists() && file.isFile() && file.length()>50000)
+//                {
+//                    System.out.println("Clear database log");
+//                    try
+//                    {
+//                        FileWriter writer=new FileWriter(log_name);
+//                        writer.write( "");
+//                        writer.close();
+//                    } catch (IOException e)
+//                    {
+//                        e.printStackTrace();
+//                    }
+//                    manager.persistdb(db_name);
+//                }
+            }else{
+                System.out.println("session not in a transaction.");
+            }
+            //System.out.println("sessions: "+manager.transaction_sessions);
+        }catch (Exception e){
+            return e.getMessage();
+        }
+        return "commit transaction";
+    }
+
+    /*
+    autocommit
+     */
+    public String visitAuto_commit_stmt(SQLParser.Auto_commit_stmtContext ctx) {
+        try{
+            if (manager.transaction_sessions.contains(session)){
+                Database the_database = GetCurrentDB();
+                manager.transaction_sessions.remove(session);
+                ArrayList<String> table_list = manager.x_lock_dict.get(session);
+                for (String table_name : table_list) {
+                    Table the_table = the_database.get(table_name);
+                    the_table.free_x_lock(session);
+                    //the_table.unpin();
+                }
+                table_list.clear();
+                manager.x_lock_dict.put(session,table_list);
+            }else{
+                System.out.println("session not in a transaction.");
+            }
+            //System.out.println("sessions: "+manager.transaction_sessions);
+        }catch (Exception e){
+            return e.getMessage();
+        }
+        return "autocommit transaction";
+    }
+
 }
