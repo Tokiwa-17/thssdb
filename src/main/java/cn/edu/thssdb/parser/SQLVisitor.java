@@ -1,4 +1,4 @@
-// Generated from C:/Users/12419/Desktop/Course/数据库/大作业2022/thssdb/src/main/java/cn/edu/thssdb/parser\SQL.g4 by ANTLR 4.10.1
+// Generated from D:/Github/thssdb/src/main/java/cn/edu/thssdb/parser\SQL.g4 by ANTLR 4.10.1
 package cn.edu.thssdb.parser;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
@@ -28,6 +28,30 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitSql_stmt(SQLParser.Sql_stmtContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SQLParser#begin_transaction_stmt}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBegin_transaction_stmt(SQLParser.Begin_transaction_stmtContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SQLParser#commit_stmt}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCommit_stmt(SQLParser.Commit_stmtContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SQLParser#auto_begin_transaction_stmt}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAuto_begin_transaction_stmt(SQLParser.Auto_begin_transaction_stmtContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SQLParser#auto_commit_stmt}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAuto_commit_stmt(SQLParser.Auto_commit_stmtContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SQLParser#create_db_stmt}.
 	 * @param ctx the parse tree

@@ -36,6 +36,7 @@ public class QueryResult {
   public QueryResult(QueryTable[] queryTables) {
     this.resultType = QueryResultType.SELECT;
     this.errorMessage = null;
+
     // TODO
   }
 

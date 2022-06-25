@@ -85,11 +85,13 @@ public class IServiceHandler implements IService.Iface {
       if (statement.length() == 0) continue;
       String cmd_head = command.split("\\s+")[0];
       ArrayList<QueryResult> queryResults;
+
       if ((Arrays.asList(CMD_HEADS).contains(cmd_head.toLowerCase())) && !manager.currentSessions.contains(session)) {
         sqlHandler.evaluate("begin transaction", session, false);
         queryResults = sqlHandler.evaluate(statement, session, false);
         sqlHandler.evaluate("commit", session, false);
       } else queryResults = sqlHandler.evaluate(statement, session, false);
+
       if (queryResults == null || queryResults.size() == 0) {
         resp.setStatus(new Status(Global.SUCCESS_CODE));
         resp.setIsAbort(true);
