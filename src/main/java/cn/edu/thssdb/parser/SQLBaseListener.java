@@ -1,4 +1,4 @@
-// Generated from C:/Users/12419/Desktop/Course/数据库/大作业2022/thssdb/src/main/java/cn/edu/thssdb/parser\SQL.g4 by ANTLR 4.10.1
+// Generated from D:/Github/thssdb/src/main/java/cn/edu/thssdb/parser\SQL.g4 by ANTLR 4.10.1
 package cn.edu.thssdb.parser;
 
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -47,6 +47,54 @@ public class SQLBaseListener implements SQLListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitSql_stmt(SQLParser.Sql_stmtContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterBegin_transaction_stmt(SQLParser.Begin_transaction_stmtContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitBegin_transaction_stmt(SQLParser.Begin_transaction_stmtContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterCommit_stmt(SQLParser.Commit_stmtContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitCommit_stmt(SQLParser.Commit_stmtContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAuto_begin_transaction_stmt(SQLParser.Auto_begin_transaction_stmtContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAuto_begin_transaction_stmt(SQLParser.Auto_begin_transaction_stmtContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAuto_commit_stmt(SQLParser.Auto_commit_stmtContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAuto_commit_stmt(SQLParser.Auto_commit_stmtContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
