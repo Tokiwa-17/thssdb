@@ -239,7 +239,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
             List<SQLParser.Column_nameContext> columnName = ctx.column_name();
             List<SQLParser.Value_entryContext> values = ctx.value_entry();
 
-            Database database = Manager.getInstance().getCurrentDatabase();
+            Database database = manager.getCurrentDatabase();
             Table table = database.get(tableName);
             ArrayList<Column> columns = table.columns;
 
@@ -299,7 +299,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
             String tableName = ctx.table_name().children.get(0).toString();
 
 
-            Database database = Manager.getInstance().getCurrentDatabase();
+            Database database = manager.getCurrentDatabase();
             Table table = database.get(tableName);
             ArrayList<Column> columns = table.columns;
 
@@ -419,7 +419,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
             //从sql语句解析
             String tableName = ctx.table_name().getText();
 
-            Database database = Manager.getInstance().getCurrentDatabase();
+            Database database = manager.getCurrentDatabase();
             Table table = database.get(tableName);
             Iterator<Row> rowIterator = table.iterator();
             // update table_name SET attrName1 = attrValue1

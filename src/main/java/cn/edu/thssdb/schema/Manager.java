@@ -157,7 +157,26 @@ public class Manager {
   }
 
   // TODO: read Log in transaction to recover.
-  public void readLog(String databaseName) { }
+  public void readLog(String databaseName) {
+    String logFilename = this.get(databaseName).getDatabaseLogFilePath();
+    File logFile = new File(logFilename);
+    if (!logFile.isFile()) return;
+    try {
+      currentDatabase = databases.get(databaseName);
+      System.out.println("??!! try to recover " + databaseName + " log");
+      InputStreamReader reader = new InputStreamReader(new FileInputStream(logFile));
+      BufferedReader bufferedReader = new BufferedReader(reader);
+      String line;
+      while ((line = bufferedReader.readLine()) != null) {
+//        System.out.println("??!!" + line);
+        sqlHandler.evaluate(line, -1);
+      }
+      bufferedReader.close();
+      reader.close();
+    } catch (Exception e) {
+      throw new FileIOException(logFile.getName());
+    }
+  }
 
   public void recover() {
     File managerDataFile = new File(Manager.getManagerDataFilePath());
@@ -182,5 +201,8 @@ public class Manager {
   // Get positions
   public static String getManagerDataFilePath(){
     return Global.DBMS_DIR + File.separator + "data" + File.separator + "manager";
+  }
+  public static String getDatabaseLogFilePath(String databaseName){
+    return Global.DBMS_DIR + File.separator + "data" + File.separator + databaseName + File.separator + "log";
   }
 }
