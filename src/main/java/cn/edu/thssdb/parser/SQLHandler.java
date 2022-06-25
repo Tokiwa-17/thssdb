@@ -30,11 +30,11 @@ public class SQLHandler {
         this.manager = manager;
     }
 
-    public ArrayList<QueryResult> evaluate(String statement, long session) {
+    public ArrayList<QueryResult> evaluate(String statement, long session, boolean isLog) {
         String stmt_head = statement.split("\\s+")[0];
-        if (Arrays.asList(CMD_SET_WITHOUT_SELECT).contains(stmt_head.toLowerCase()) && session==0)
+        if (Arrays.asList(CMD_SET_WITHOUT_SELECT).contains(stmt_head.toLowerCase()) && session>=0 && !isLog)
         {
-            manager.writeLog(statement);
+            manager.writeLog(session, statement);
         }
         System.out.println("session:" +session + "  " + statement);
 //        if (statement.equals(Global.LOG_BEGIN_TRANSACTION)) {
