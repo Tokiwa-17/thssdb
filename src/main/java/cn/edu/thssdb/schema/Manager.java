@@ -145,11 +145,11 @@ public class Manager {
 
 
   // Log control and recover from logs.
-  public void writeLog(String statement) {
+  public void writeLog(long session, String statement) {
     String logFilename = this.currentDatabase.getDatabaseLogFilePath();
     try {
       FileWriter writer = new FileWriter(logFilename, true);
-      writer.write(statement + "\n");
+      writer.write(session + "@" + statement + "\n");
       writer.close();
     } catch (Exception e) {
       throw new FileIOException(logFilename);
@@ -169,7 +169,9 @@ public class Manager {
       String line;
       while ((line = bufferedReader.readLine()) != null) {
 //        System.out.println("??!!" + line);
-        sqlHandler.evaluate(line, -1);
+        long session = Long.parseLong (line.split("@")[0]);
+        String statement = line.split("@")[1];
+        sqlHandler.evaluate(statement, session, true);
       }
       bufferedReader.close();
       reader.close();
