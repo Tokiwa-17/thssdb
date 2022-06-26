@@ -103,3 +103,32 @@
     ![image-20220626110132378](thssdb report/image-20220626110132378.png)
 
     客户端B 可以正确读取 ![image-20220626110205663](thssdb report/image-20220626110205663.png)
+
+  * 实现方法
+
+    首先需要明确的一点是对于`READ COMMITTED`隔离级别，我们需要实现的是严格(strict)的2PL封锁协议。也就是说对于涉及到写操作，我们需要加X-lock, 必须在事务提交后进行释放。对于S-lock没有要求。
+
+    `x_lockDict`记录了session和当前加了x-lock的table 名称列表。
+
+    原本给的框架对于update,insert,delete语句自动执行`begin transaction`和`commit`，对于事务没有支持。我们首先更改了`SQL.g4`加入了对于`BEGIN TRANSACTION`和`COMMIT`的支持。然后使用antlr重新生成相关文件。
+
+    然后修改了`IServiceHandler`的事务开启逻辑：
+
+    ```java
+    if ((Arrays.asList(CMD_HEADS).contains(cmd_head.toLowerCase())) && !manager.transaction_sessions.contains(session)) {
+            sqlHandler.evaluate("begin transaction", session, false);
+            queryResults = sqlHandler.evaluate(statement, session, false);
+            sqlHandler.evaluate("commit", session, false);
+          } else queryResults = sqlHandler.evaluate(statement, session, false);
+    ```
+
+    如上所示，只有当前的session不处于事务状态时才会自动开启事务并在执行完毕后自动提交。
+
+    
+
+    修改`ImpVisitor`文件，增加了`visitBegin_transaction_stmt`和`visitCommit_stmt`函数：
+
+    * `visitBegin_transaction_stmt`: 将当前的session加入事务session列表，初始化读、写锁HashMap
+    * `visitCommit_stmt`: 将当前的session从事务session列表中去除，释放所有X-lock。
+
+    对于`visitSelect_stmt`加入对于锁的判断，尝试获取数据项的s-lock, 如果该数据项位于x-lock的hashMap中，则获取读锁失败，会提示用户正在读入uncommitted数据。
