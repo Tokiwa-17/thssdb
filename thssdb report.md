@@ -28,7 +28,7 @@
     DROP TABLE person;
     ```
 
-    ![image-20220626103319501](thssdb report/image-20220626103319501.png)
+    ![image-20220626103319501](https://github.com/Tokiwa-17/thssdb/blob/master/thssdb%20report/image-20220626103319501.png)
 
   * 实现方法
 
@@ -75,7 +75,7 @@
     select bank.id, bank.name, bank.balance from bank;
     ```
 
-    ![image-20220626105130541](thssdb report/image-20220626105130541.png)
+    ![image-20220626105130541](https://github.com/Tokiwa-17/thssdb/blob/master/thssdb%20report/image-20220626105130541.png)
 
     开两个客户端A, B:
 
@@ -86,7 +86,7 @@
     update bank set balance=1000 where name='Alice';
     ```
 
-    ![image-20220626105315340](thssdb report/image-20220626105315340.png)
+    ![image-20220626105315340](https://github.com/Tokiwa-17/thssdb/blob/master/thssdb%20report/image-20220626105315340.png)
 
     客户端B:
 
@@ -96,11 +96,13 @@
     select bank.id, bank.name, bank.balance from bank;
     ```
 
-    ![image-20220626110052436](thssdb report/image-20220626110052436.png)
+    ![image-20220626110052436](https://github.com/Tokiwa-17/thssdb/blob/master/thssdb%20report/image-20220626110052436.png)
 
     客户端A commit
 
-    ![image-20220626110132378](thssdb report/image-20220626110132378.png)
+    ![image-20220626110132378](https://github.com/Tokiwa-17/thssdb/blob/master/thssdb%20report/image-20220626110132378.png)
 
-    客户端B 可以正确读取 ![image-20220626110205663](thssdb report/image-20220626110205663.png)
+    客户端B 可以正确读取 
+    
+    ![image-20220626110205663](https://github.com/Tokiwa-17/thssdb/blob/master/thssdb%20report/image-20220626110205663.png)
 
