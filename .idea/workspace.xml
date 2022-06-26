@@ -6,24 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="f6b5b82d-68b7-4a92-bdea-28f66dd83937" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/ImpVisitor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/ImpVisitor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/SQL.g4" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/SQL.g4" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/SQL.interp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/SQL.interp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/SQL.tokens" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/SQL.tokens" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/SQLBaseListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/SQLBaseListener.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/SQLBaseVisitor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/SQLBaseVisitor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/SQLHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/SQLHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/SQLLexer.interp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/SQLLexer.interp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/SQLLexer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/SQLLexer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/SQLLexer.tokens" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/SQLLexer.tokens" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/SQLListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/SQLListener.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/SQLParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/SQLParser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/SQLVisitor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/parser/SQLVisitor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/schema/Database.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/schema/Database.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/schema/Manager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/schema/Manager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/schema/Table.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/schema/Table.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/service/IServiceHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/edu/thssdb/service/IServiceHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thssdb/data/test/log" beforeDir="false" afterPath="$PROJECT_DIR$/thssdb/data/test/log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/cn/edu/thssdb/parser/ImpVisitor.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/cn/edu/thssdb/parser/ImpVisitor.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/thssdb/data/test/log" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -126,7 +110,7 @@
       <workItem from="1656049545610" duration="2968000" />
       <workItem from="1656124382382" duration="12346000" />
       <workItem from="1656140964035" duration="778000" />
-      <workItem from="1656141771569" duration="9992000" />
+      <workItem from="1656141771569" duration="12964000" />
     </task>
     <servers />
   </component>
