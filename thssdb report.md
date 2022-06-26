@@ -2,7 +2,7 @@
 
 ## 查询模块
 
-## CREATE TABLE
+### CREATE TABLE
 
 * 功能演示
 
@@ -10,7 +10,7 @@
   CREATE TABLE person (name String(256), ID Int not null, PRIMARY KEY(ID))
   ```
 
-  ![image-20220626101551132](https://github.com/Tokiwa-17/thssdb/blob/master/thssdb%20report/image-20220626101551132.png)
+  ![image-20220626101551132](thssdb%20report/image-20220626101551132.png)
 
 * 实现方法
 
@@ -20,7 +20,7 @@
 
   最后将ArrayList转为Column数组，调用`GetCurrentDB().create(tablename, columns)`成功创建table，返回创建成功的信息。
 
-## DROP TABLE
+### DROP TABLE
 
 * 功能演示
 
@@ -28,7 +28,7 @@
   DROP TABLE person;
   ```
 
-  ![image-20220626103319501](https://github.com/Tokiwa-17/thssdb/blob/master/thssdb%20report/image-20220626103319501.png)
+  ![image-20220626103319501](thssdb%20report/image-20220626103319501.png)
 
 * 实现方法
 
@@ -40,7 +40,7 @@
   GetCurrentDB().drop(ctx.table_name().getText().toLowerCase());
   ```
 
-## SHOW TABLE
+### SHOW TABLE
 
 * 功能演示：见CREATE TABLE
 
@@ -84,11 +84,64 @@
 
   若包含where关键词，则找到列中对应`attrName`的index，构造`comparator`并依据此依次检查当前表每一行的对应元素是否满足where条件，对满足的行调用`delete`删除。
 
+### UPDATE 
+   - 功能演示：
 
+  ```sql
+  UPDATE  tableName  SET  attrName = attrValue  WHERE  attrName = attrValue
+  ```
+
+  ![1656216553432](thssdb report/1656216553432.png)
+
+- 实现方法
+
+  修改`impVisitor.java`文件的`visitUpdate_stmt`函数。
+  首先获取表名并拿到对应的表，根据UPDATE后面的WHERE字句，从列信息中找到表中对应的属性，并将WHERE子句等号右边的值转化为对应的类型。然后将每一行里这个属性的值与其作比较，来筛选出表中符合条件的行。最后对每一行都调用`table.update`来更新这一行。
+
+### SELECT
+
+   * 功能演示：
+
+```sql
+  SELECT tableName1.AttrName1, tableName1.AttrName2…, tableName2.AttrName1, tableName2.AttrName2,…  FROM  tableName1 [JOIN tableName2 [ON  tableName1.attrName1 = tableName2.attrName2]] [ WHERE  attrName1 = attrValue ]
+```
+  ![1656216334762](thssdb report/1656216334762.png)
+
+  * 实现方法
+
+    定义`QueryTable`来保存查询中途的表的行列信息，同时实现`QueryTable·`之间的Join。
+
+    修改`impVisitor.java`文件的`visitSelect_stmt`函数。
+  
+    先处理FROM字句，拿到对应的QueryTable，
+    
+    处理方法为：
+    
+    - 若有至少一个Join，就将最后一个Join前面的部分递归处理，然后将处理结果与最后一个join后面的表名对应的QueryTable进行join。
+    - 否则，只剩下一个表名需要处理，返回它对应的QueryTable
+  - 注意，利用一个表名得到对应的QueryTable时，会将表名加在列信息里每个属性的前面。
+    
+    因此当前的SELECT语句是可以支持多个JOIN的。
+    
+    
+    
+    接下来处理WHERE子句，即从原来的QueryTable中筛选出一些行，得到一个新的QueryTable。
+    
+    处理方法为：利用与Update中相同的方法筛选出刚才拿到的QueryTable中满足条件的所有行。
+    
+    
+    
+    最后处理SELECT子句，即从原来的QueryTable中筛选出一些列，得到一个新的QueryTable。
+    
+    处理方法为：得到每个最终要查询的属性在之前的QueryTable中对应的索引。然后对每一行，筛选出这些索引对应的列即可。
+    
+    
+    
+    处理完后，将结果保存至QueryResult里。
 
 ## 事务模块
 
-## READ COMMITTED
+### READ COMMITTED
 
 * 功能演示
 
@@ -99,7 +152,7 @@
   select bank.id, bank.name, bank.balance from bank;
   ```
   
-  ![image-20220626105130541](https://github.com/Tokiwa-17/thssdb/blob/master/thssdb%20report/image-20220626105130541.png)
+  ![image-20220626105130541](thssdb%20report/image-20220626105130541.png)
 
   开两个客户端A, B:
 
@@ -110,7 +163,7 @@
   update bank set balance=1000 where name='Alice';
   ```
   
-  ![image-20220626105315340](https://github.com/Tokiwa-17/thssdb/blob/master/thssdb%20report/image-20220626105315340.png)
+  ![image-20220626105315340](thssdb%20report/image-20220626105315340.png)
 
   客户端B:
 
@@ -120,15 +173,15 @@
   select bank.id, bank.name, bank.balance from bank;
   ```
   
-  ![image-20220626110052436](https://github.com/Tokiwa-17/thssdb/blob/master/thssdb%20report/image-20220626110052436.png)
+  ![image-20220626110052436](thssdb%20report/image-20220626110052436.png)
 
   客户端A commit
 
-  ![image-20220626110132378](https://github.com/Tokiwa-17/thssdb/blob/master/thssdb%20report/image-20220626110132378.png)
+  ![image-20220626110132378](thssdb%20report/image-20220626110132378.png)
 
   客户端B 可以正确读取 
 
-  ![image-20220626110205663](https://github.com/Tokiwa-17/thssdb/blob/master/thssdb%20report/image-20220626110205663.png)
+  ![image-20220626110205663](thssdb%20report/image-20220626110205663.png)
   
    ![image-20220626110205663](thssdb report/image-20220626110205663.png)
   
