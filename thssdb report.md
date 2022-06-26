@@ -10,7 +10,7 @@
   CREATE TABLE person (name String(256), ID Int not null, PRIMARY KEY(ID))
   ```
 
-  ![image-20220626101551132](https://github.com/Tokiwa-17/thssdb/blob/master/thssdb%20report/image-20220626101551132.png)
+  ![image-20220626101551132](thssdb%20report/image-20220626101551132.png)
 
 * 实现方法
 
@@ -28,7 +28,7 @@
   DROP TABLE person;
   ```
 
-  ![image-20220626103319501](https://github.com/Tokiwa-17/thssdb/blob/master/thssdb%20report/image-20220626103319501.png)
+  ![image-20220626103319501](thssdb%20report/image-20220626103319501.png)
 
 * 实现方法
 
@@ -93,18 +93,21 @@
 
   ![1656216553432](thssdb report/1656216553432.png)
 
-    - 实现方法
 
-      修改`impVisitor.java`文件的`visitUpdate_stmt`函数。
-       首先获取表名并拿到对应的表，根据UPDATE后面的WHERE字句，从列信息中找到表中对应的属性，并将WHERE子句等号右边的值转化为对应的类型。然后将每一行里这个属性的值与其作比较，来筛选出表中符合条件的行。最后对每一行都调用`table.update`来更新这一行。
-   
+- 实现方法
+
+  修改`impVisitor.java`文件的`visitUpdate_stmt`函数。
+  首先获取表名并拿到对应的表，根据UPDATE后面的WHERE字句，从列信息中找到表中对应的属性，并将WHERE子句等号右边的值转化为对应的类型。然后将每一行里这个属性的值与其作比较，来筛选出表中符合条件的行。最后对每一行都调用`table.update`来更新这一行。
+
+
 ### SELECT
 
    * 功能演示：
 
-    ```sql
-   SELECT tableName1.AttrName1, tableName1.AttrName2…, tableName2.AttrName1, tableName2.AttrName2,…  FROM  tableName1 [JOIN tableName2 [ON  tableName1.attrName1 = tableName2.attrName2]] [ WHERE  attrName1 = attrValue ]
-    ```
+
+```sql
+  SELECT tableName1.AttrName1, tableName1.AttrName2…, tableName2.AttrName1, tableName2.AttrName2,…  FROM  tableName1 [JOIN tableName2 [ON  tableName1.attrName1 = tableName2.attrName2]] [ WHERE  attrName1 = attrValue ]
+```
 
   ![1656216334762](thssdb report/1656216334762.png)
 
@@ -139,11 +142,11 @@
     
     
     处理完后，将结果保存至QueryResult里。
-  
+
 
 ## 事务模块
 
-## READ COMMITTED
+### READ COMMITTED
 
 * 功能演示
 
@@ -154,7 +157,7 @@
   select bank.id, bank.name, bank.balance from bank;
   ```
   
-  ![image-20220626105130541](https://github.com/Tokiwa-17/thssdb/blob/master/thssdb%20report/image-20220626105130541.png)
+  ![image-20220626105130541](thssdb%20report/image-20220626105130541.png)
 
   开两个客户端A, B:
 
@@ -165,7 +168,7 @@
   update bank set balance=1000 where name='Alice';
   ```
   
-  ![image-20220626105315340](https://github.com/Tokiwa-17/thssdb/blob/master/thssdb%20report/image-20220626105315340.png)
+  ![image-20220626105315340](thssdb%20report/image-20220626105315340.png)
 
   客户端B:
 
@@ -175,15 +178,15 @@
   select bank.id, bank.name, bank.balance from bank;
   ```
   
-  ![image-20220626110052436](https://github.com/Tokiwa-17/thssdb/blob/master/thssdb%20report/image-20220626110052436.png)
+  ![image-20220626110052436](thssdb%20report/image-20220626110052436.png)
 
   客户端A commit
 
-  ![image-20220626110132378](https://github.com/Tokiwa-17/thssdb/blob/master/thssdb%20report/image-20220626110132378.png)
+  ![image-20220626110132378](thssdb%20report/image-20220626110132378.png)
 
   客户端B 可以正确读取 
 
-  ![image-20220626110205663](https://github.com/Tokiwa-17/thssdb/blob/master/thssdb%20report/image-20220626110205663.png)
+  ![image-20220626110205663](thssdb%20report/image-20220626110205663.png)
   
    ![image-20220626110205663](thssdb report/image-20220626110205663.png)
   
