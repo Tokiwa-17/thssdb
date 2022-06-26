@@ -724,8 +724,8 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
     commit
      */
     public String visitCommit_stmt(SQLParser.Commit_stmtContext ctx) {
-        try{
-            if (manager.transaction_sessions.contains(session)){
+        try {
+            if (manager.transaction_sessions.contains(session)) {
                 Database the_database = GetCurrentDB();
                 String db_name = the_database.getName();
                 manager.transaction_sessions.remove(session);
@@ -733,31 +733,12 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
                 for (String table_name : table_list) {
                     Table the_table = the_database.get(table_name);
                     the_table.free_x_lock(session);
-                    //the_table.unpin();
                 }
                 table_list.clear();
                 manager.x_lock_dict.put(session,table_list);
-
-//                String log_name = DATA_DIRECTORY + db_name + ".log";
-//                File file = new File(log_name);
-//                if(file.exists() && file.isFile() && file.length()>50000)
-//                {
-//                    System.out.println("Clear database log");
-//                    try
-//                    {
-//                        FileWriter writer=new FileWriter(log_name);
-//                        writer.write( "");
-//                        writer.close();
-//                    } catch (IOException e)
-//                    {
-//                        e.printStackTrace();
-//                    }
-//                    manager.persistdb(db_name);
-//                }
-            }else{
+            } else {
                 System.out.println("session not in a transaction.");
             }
-            //System.out.println("sessions: "+manager.transaction_sessions);
         }catch (Exception e){
             return e.getMessage();
         }
