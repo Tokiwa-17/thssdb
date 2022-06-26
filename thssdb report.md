@@ -93,18 +93,22 @@
 
   ![1656216553432](thssdb report/1656216553432.png)
 
+
 - 实现方法
 
   修改`impVisitor.java`文件的`visitUpdate_stmt`函数。
   首先获取表名并拿到对应的表，根据UPDATE后面的WHERE字句，从列信息中找到表中对应的属性，并将WHERE子句等号右边的值转化为对应的类型。然后将每一行里这个属性的值与其作比较，来筛选出表中符合条件的行。最后对每一行都调用`table.update`来更新这一行。
 
+
 ### SELECT
 
    * 功能演示：
 
+
 ```sql
   SELECT tableName1.AttrName1, tableName1.AttrName2…, tableName2.AttrName1, tableName2.AttrName2,…  FROM  tableName1 [JOIN tableName2 [ON  tableName1.attrName1 = tableName2.attrName2]] [ WHERE  attrName1 = attrValue ]
 ```
+
   ![1656216334762](thssdb report/1656216334762.png)
 
   * 实现方法
@@ -138,6 +142,7 @@
     
     
     处理完后，将结果保存至QueryResult里。
+
 
 ## 事务模块
 
