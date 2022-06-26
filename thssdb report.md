@@ -10,7 +10,7 @@
     CREATE TABLE person (name String(256), ID Int not null, PRIMARY KEY(ID))
     ```
 
-    ![image-20220626101551132](thssdb report/image-20220626101551132.png)
+    ![image-20220626101551132](https://github.com/Tokiwa-17/thssdb/blob/master/thssdb%20report/image-20220626101551132.png)
 
   * 实现方法
 
